@@ -10,6 +10,15 @@ class Pengumuman {
         }
     }
 
+    static async getPengumuman() {
+        try {
+            const [rows] = await connection.query(`SELECT id, judul_pengumuman, foto_pengumuman, dibuat_pada FROM pengumuman order by dibuat_pada desc`)
+            return rows
+        } catch (err) {
+            throw err
+        }
+    }
+
     static async store(data) {
         try {
             const [result] = await connection.query(`INSERT INTO pengumuman SET ?`, [data])
