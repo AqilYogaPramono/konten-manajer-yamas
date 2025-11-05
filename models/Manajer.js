@@ -9,6 +9,15 @@ class Manajer {
             throw err
         }
     }
+
+    static async getNama(id) {
+        try {
+            const [rows] = await connection.query(`SELECT nama from pegawai where id = ?`, [id])
+            return rows[0]
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = Manajer

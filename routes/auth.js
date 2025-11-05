@@ -60,8 +60,8 @@ router.post('/log', async (req, res) => {
 
         req.session.manajerId = manajer.id
 
-        req.flash('success', 'Login successful')
-        res.redirect('/manajer/dashbaord')
+        req.flash('success', 'Anda berhasil masuk')
+        res.redirect('/manajer/dashboard')
     } catch (err) {
         console.error(err)
         req.flash('error', 'Internal server error')
@@ -72,7 +72,6 @@ router.post('/log', async (req, res) => {
 router.get('/logout', async(req, res) => {
     try {
         req.session.destroy()
-        req.flash('success', 'Logout successful')
         res.redirect('/')
     } catch (err) {
         console.error(err)

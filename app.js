@@ -14,6 +14,9 @@ const authRouter = require('./routes/auth')
 
 const APIRouter = require('./routes/API')
 
+const manajerDashboard = require('./routes/manajer/dashboard')
+const manajer = require('./routes/manajer/ubah-kata-sandi')
+
 const manajerPembina = require('./routes/konten-manajer/pembina')
 const manajerPengawas = require('./routes/konten-manajer/pengawas')
 const manajerPengumuman = require('./routes/konten-manajer/pengumuman')
@@ -48,6 +51,9 @@ app.use(cors())
 app.use('/', authRouter)
 
 app.use('/API', APIRouter)
+
+app.use('/manajer/dashboard', manajerDashboard)
+app.use('/manajer/ubah-kata-sandi', manajer)
 
 app.use('/manajer', manajerPembina)
 app.use('/manajer', manajerPengawas)
