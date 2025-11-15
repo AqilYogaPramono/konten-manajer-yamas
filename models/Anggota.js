@@ -3,7 +3,7 @@ const connection = require('../configs/database')
 class Anggota {
     static async getAll() {
         try {
-            const [rows] = await connection.query(`SELECT * FROM pengawas`)
+            const [rows] = await connection.query(`SELECT a.*, j.nama_jabatan FROM anggota a LEFT JOIN jabatan j ON a.id_jabatan = j.id ORDER BY a.id DESC`)
             return rows
         } catch (err) {
             throw err
@@ -12,7 +12,7 @@ class Anggota {
 
     static async store(data) {
         try {
-            const [result] = await connection.query(`INSERT INTO pengawas SET ?`, [data])
+            const [result] = await connection.query(`INSERT INTO anggota SET ?`, [data])
             return result
         } catch (err) {
             throw err
@@ -21,7 +21,7 @@ class Anggota {
 
     static async update(data, id) {
         try {
-            const [result] = await connection.query(`UPDATE pengawas SET ? WHERE id = ?`, [data, id])
+            const [result] = await connection.query(`UPDATE anggota SET ? WHERE id = ?`, [data, id])
             return result
         } catch (err) {
             throw err
@@ -30,7 +30,7 @@ class Anggota {
 
     static async getById(id) {
         try {
-            const [rows] = await connection.query(`SELECT * FROM pengawas WHERE id = ?`, [id])
+            const [rows] = await connection.query(`SELECT a.*, j.nama_jabatan FROM anggota a LEFT JOIN jabatan j ON a.id_jabatan = j.id WHERE a.id = ?`, [id])
             return rows[0]
         } catch (err) {
             throw err
@@ -39,7 +39,7 @@ class Anggota {
 
     static async delete(id) {
         try {
-            const [result] = await connection.query(`DELETE FROM pengawas WHERE id = ?`, [id])
+            const [result] = await connection.query(`DELETE FROM anggota WHERE id = ?`, [id])
             return result
         } catch (err) {
             throw err

@@ -1,7 +1,213 @@
 const express = require('express')
 
+const Manajer = require('../../../models/Manajer')
+const Anggota = require('../../../models/Anggota')
+const Jabatan = require('../../../models/Jabatan')
+const { authManajer } = require('../../../middlewares/auth')
+const { convertImageFile } = require('../../../middlewares/convertImage')
+const path = require('path')
+const multer = require('multer')
+const fs = require('fs')
 
 const router = express.Router()
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../../../public/images/anggota'))
+    },
+    filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + Math.round(Math.random()*1e9)
+        cb(null, unique + path.extname(file.originalname))
+    }
+})
+
+const upload = multer({ storage })
+
+const deleteUploadedFile = (file) => {
+    if (file) {
+        const filePath = path.join(__dirname, '../../../public/images/anggota', file.filename)
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    }
+}
+
+const deleteOldPhoto = (oldPhoto) => {
+    if (oldPhoto) {
+        const filePath = path.join(__dirname, '../../../public/images/anggota', oldPhoto)
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    }
+}
+
+router.get('/', authManajer, async (req, res) => {
+    try {
+        const manajer = await Manajer.getNama(req.session.manajerId)
+        const anggota = await Anggota.getAll()
+
+        res.render('konten-manajer/personel/anggota/index', {manajer, anggota})
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/dashboard')
+    }
+})
+
+router.get('/buat', authManajer, async (req, res) => {
+    try {
+        const manajer = await Manajer.getNama(req.session.manajerId)
+        const jabatan = await Jabatan.getAll()
+
+        res.render('konten-manajer/personel/anggota/buat', {
+            manajer,
+            jabatan,
+            data: req.flash('data')[0]
+        })
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
+    }
+})
+
+router.post('/create', authManajer, upload.single('foto'), async (req, res) => {
+    try {
+        const { nama, id_jabatan } = req.body
+        const foto = req.file ? req.file.filename : null
+        const data = { nama, foto, id_jabatan }
+
+        if (!nama) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Nama wajib diisi')
+            req.flash('data', data)
+            return res.redirect('/manajer/anggota/buat')
+        }
+
+        if (!foto) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Foto wajib diisi')
+            req.flash('data', data)
+            return res.redirect('/manajer/anggota/buat')
+        }
+
+        if (!id_jabatan) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Jabatan wajib diisi')
+            req.flash('data', data)
+            return res.redirect('/manajer/anggota/buat')
+        }
+
+        const allowedFormats = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+        if (req.file && !allowedFormats.includes(req.file.mimetype)) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Hanya file gambar (jpg, jpeg, png, webp) yang diizinkan')
+            req.flash('data', req.body)
+            return res.redirect('/manajer/anggota/buat')
+        }
+
+        if (req.file && req.file.path) {
+            const result = await convertImageFile(req.file.path)
+            if (result && result.outputPath) {
+                data.foto = path.basename(result.outputPath)
+            }
+        }
+
+        await Anggota.store(data)
+        req.flash('success', 'Anggota berhasil dibuat')
+        res.redirect('/manajer/anggota')
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
+    }
+})
+
+router.get('/edit/:id', authManajer, async (req, res) => {
+    try {
+        const {id} = req.params
+        const manajer = await Manajer.getNama(req.session.manajerId)
+        const anggota = await Anggota.getById(id)
+        const jabatan = await Jabatan.getAll()
+
+        res.render('konten-manajer/personel/anggota/edit', {
+            manajer,
+            anggota,
+            jabatan
+        })
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
+    }
+})
+
+router.post('/update/:id', authManajer, upload.single('foto'), async (req, res) => {
+    try {
+        const {id} = req.params
+        const anggota = await Anggota.getById(id)
+
+        const { nama, id_jabatan } = req.body
+        const foto = req.file ? req.file.filename : anggota.foto
+        const data = { nama, foto, id_jabatan }
+
+        if (!nama) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Nama wajib diisi')
+            return res.redirect(`/manajer/anggota/edit/${id}`)
+        }
+
+        if (!foto) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Foto wajib diisi')
+            return res.redirect(`/manajer/anggota/edit/${id}`)
+        }
+
+        if (!id_jabatan) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Jabatan wajib diisi')
+            return res.redirect(`/manajer/anggota/edit/${id}`)
+        }
+
+        const allowedFormats = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+        if (req.file && !allowedFormats.includes(req.file.mimetype)) {
+            deleteUploadedFile(req.file)
+            req.flash('error', 'Hanya file gambar (jpg, jpeg, png, webp) yang diizinkan')
+            return res.redirect(`/manajer/anggota/edit/${id}`)
+        }
+
+        if (req.file && req.file.path) {
+            const result = await convertImageFile(req.file.path)
+            if (result && result.outputPath) {
+                data.foto = path.basename(result.outputPath)
+            }
+        }
+
+        if (req.file && anggota.foto) deleteOldPhoto(anggota.foto)
+
+        await Anggota.update(data, id)
+        req.flash('success', 'Anggota berhasil diperbarui')
+        res.redirect('/manajer/anggota')
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
+    }
+})
+
+router.post('/hapus/:id', authManajer, async (req, res) => {
+    try {
+        const {id} = req.params
+
+        const anggota = await Anggota.getById(id)
+        if (anggota && anggota.foto) {
+            deleteOldPhoto(anggota.foto)
+        }
+
+        await Anggota.delete(id)
+        req.flash('success', 'Anggota berhasil dihapus')
+        res.redirect('/manajer/anggota')
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
+    }
+})
 
 module.exports = router
