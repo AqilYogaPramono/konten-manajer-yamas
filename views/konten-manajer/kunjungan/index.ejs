@@ -1,0 +1,106 @@
+<%- include('../../partials/headers/__header-dashboard.ejs', { title: 'Data Kunjungan' }) %>
+<%- include('../../partials/navs/__nav-manajer.ejs') %>
+<%- include('../../partials/messages/__messages-dashboard.ejs') %>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-lg-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <%
+                            const formatDate = (value) => {
+                                if (!value) return '-'
+                                const date = new Date(value)
+                                if (isNaN(date)) return value
+                                return date.toLocaleDateString('id-ID', { 
+                                    day: '2-digit', 
+                                    month: 'long', 
+                                    year: 'numeric'
+                                })
+                            }
+                        %>
+
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+                            <h4 class="card-title mb-3 mb-md-0">Data Kunjungan</h4>
+                            <a href="/manajer/kunjungan/buat" class="btn btn-primary btn-sm" data-loading>Tambah Kunjungan</a>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-stacked">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Judul</th>
+                                        <th>Deskripsi</th>
+                                        <th>Waktu Kunjungan</th>
+                                        <th style="width: 170px;" class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (Array.isArray(kunjungan) && kunjungan.length) { %>
+                                        <% for (let i = 0; i < kunjungan.length; i++) { const item = kunjungan[i]; %>
+                                            <tr>
+                                                <td data-label="No"><%= i + 1 %></td>
+                                                <td data-label="Judul"><%= item.judul %></td>
+                                                <td data-label="Deskripsi"><%= item.deskripsi ? (item.deskripsi.length > 80 ? item.deskripsi.substring(0, 80) + '...' : item.deskripsi) : '-' %></td>
+                                                <td data-label="Waktu Kunjungan"><%= formatDate(item.waktu_kunjungan) %></td>
+                                                <td data-label="Aksi" class="text-right">
+                                                    <div class="btn-actions">
+                                                        <a href="/manajer/kunjungan/detail/<%= item.id %>" class="btn btn-sm btn-outline-primary" data-loading>Detail</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% } %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="5" class="text-center">Belum ada data</td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-below-navbar" id="modalConfirmDelete" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Konfirmasi Hapus</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus data ini?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-below-navbar modal-top" id="globalImagePreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pratinjau Gambar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="globalImagePreviewEl" src="" alt="preview" style="width:100%;height:auto;display:block;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/scripts/__script-dashboard.ejs') %>

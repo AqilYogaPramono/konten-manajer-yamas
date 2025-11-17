@@ -1,0 +1,110 @@
+<%- include('../../partials/headers/__header-dashboard.ejs', { title: 'Edit Kunjungan' }) %>
+<%- include('../../partials/navs/__nav-manajer.ejs') %>
+<%- include('../../partials/messages/__messages-dashboard.ejs') %>
+
+<%
+    const waktuKunjunganValue = kunjungan && kunjungan.waktu_kunjungan ? new Date(kunjungan.waktu_kunjungan).toISOString().slice(0,10) : ''
+%>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Edit Kunjungan</h4>
+                        <form action="/manajer/kunjungan/update/<%= kunjungan.id %>" method="POST" enctype="multipart/form-data" data-loading>
+                            <div class="form-group">
+                                <label for="judul">Judul Kunjungan</label>
+                                <input type="text" class="form-control" id="judul" name="judul" placeholder="Masukkan judul kunjungan" value="<%= kunjungan.judul %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="deskripsi">Deskripsi</label>
+                                <textarea class="form-control" id="deskripsi" name="deskripsi" rows="6" placeholder="Jelaskan deskripsi kunjungan" required><%= kunjungan.deskripsi || '' %></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="waktu_kunjungan">Waktu Kunjungan</label>
+                                <input type="date" class="form-control" id="waktu_kunjungan" name="waktu_kunjungan" value="<%= waktuKunjunganValue %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Foto Kegiatan Saat Ini</label>
+                                <div id="existingFotoContainer" class="image-preview-container">
+                                    <% if (Array.isArray(foto) && foto.length) { %>
+                                        <% foto.forEach(function(item){ %>
+                                            <div class="image-preview-item" data-foto-id="<%= item.id %>">
+                                                <img src="/images/kunjungan/<%= item.foto %>" data-src="/images/kunjungan/<%= item.foto %>" alt="foto kunjungan" class="img-click-preview">
+                                                <button type="button" class="image-preview-remove existing-foto-remove" data-foto-id="<%= item.id %>" aria-label="Hapus gambar">
+                                                    <i class="mdi mdi-close"></i>
+                                                </button>
+                                                <input type="hidden" name="hapus_foto[]" value="" class="hapus-foto-input" data-foto-id="<%= item.id %>">
+                                            </div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <p class="text-muted mb-0">Belum ada foto kegiatan.</p>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foto_baru">Tambah Foto Kegiatan</label>
+                                <input type="file" class="form-control" id="foto_baru" name="foto" accept="image/*" multiple data-preview-container="previewFotoBaruContainer">
+                                <small class="form-text text-muted">Foto baru akan ditambahkan ke daftar existing.</small>
+                                <div id="previewFotoBaruContainer" class="image-preview-container"></div>
+                            </div>
+
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary mr-2">Simpan</button>
+                                <a href="/manajer/kunjungan/detail/<%= kunjungan.id %>" class="btn btn-light" data-loading>Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-below-navbar modal-top" id="globalImagePreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pratinjau Gambar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="globalImagePreviewEl" src="" alt="preview" style="width:100%;height:auto;display:block;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/scripts/__script-dashboard.ejs') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle existing foto remove button
+    const existingContainer = document.getElementById('existingFotoContainer');
+    if (existingContainer) {
+        existingContainer.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.existing-foto-remove');
+            if (removeBtn) {
+                e.stopPropagation();
+                const fotoId = removeBtn.getAttribute('data-foto-id');
+                const item = removeBtn.closest('.image-preview-item');
+                const hiddenInput = item.querySelector('.hapus-foto-input');
+                
+                if (hiddenInput) {
+                    hiddenInput.value = fotoId;
+                    item.style.opacity = '0.5';
+                    item.style.pointerEvents = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
