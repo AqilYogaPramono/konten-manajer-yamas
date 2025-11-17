@@ -1,0 +1,68 @@
+<%- include('../../partials/headers/__header-dashboard.ejs', { title: 'Tambah Program Magang' }) %>
+<%- include('../../partials/navs/__nav-manajer.ejs') %>
+<%- include('../../partials/messages/__messages-dashboard.ejs') %>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Tambah Program Magang</h4>
+                        <form action="/manajer/magang/create" method="POST" enctype="multipart/form-data" data-loading>
+                            <div class="form-group">
+                                <label for="judul">Judul Program</label>
+                                <input type="text" class="form-control" id="judul" name="judul" placeholder="Masukkan judul program" value="<%= (data && data.judul) ? data.judul : '' %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="deskripsi_tugas">Deskripsi Tugas</label>
+                                <textarea class="form-control" id="deskripsi_tugas" name="deskripsi_tugas" rows="6" placeholder="Jelaskan tugas peserta magang" required><%= (data && data.deskripsi_tugas) ? data.deskripsi_tugas : '' %></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="periode_mulai">Periode Mulai</label>
+                                <input type="date" class="form-control" id="periode_mulai" name="periode_mulai" value="<%= (data && data.periode_mulai) ? data.periode_mulai : '' %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="periode_berakhir">Periode Berakhir</label>
+                                <input type="date" class="form-control" id="periode_berakhir" name="periode_berakhir" value="<%= (data && data.periode_berakhir) ? data.periode_berakhir : '' %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foto_kegiatan">Foto Kegiatan (boleh lebih dari satu)</label>
+                                <input type="file" class="form-control" id="foto_kegiatan" name="foto" accept="image/*" multiple data-preview-container="previewFotoContainer">
+                                <small class="form-text text-muted">Format diperbolehkan: jpg, jpeg, png, webp. Maksimal 10 foto.</small>
+                                <div id="previewFotoContainer" class="image-preview-container"></div>
+                            </div>
+
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary mr-2">Simpan</button>
+                                <a href="/manajer/magang" class="btn btn-light" data-loading>Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-below-navbar modal-top" id="globalImagePreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pratinjau Gambar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="globalImagePreviewEl" src="" alt="preview" style="width:100%;height:auto;display:block;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/scripts/__script-dashboard.ejs') %>

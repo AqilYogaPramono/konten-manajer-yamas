@@ -1,0 +1,116 @@
+<%- include('../../partials/headers/__header-dashboard.ejs', { title: 'Edit Program Magang' }) %>
+<%- include('../../partials/navs/__nav-manajer.ejs') %>
+<%- include('../../partials/messages/__messages-dashboard.ejs') %>
+
+<%
+    const periodeMulaiValue = magang && magang.periode_mulai ? new Date(magang.periode_mulai).toISOString().slice(0,10) : ''
+    const periodeBerakhirValue = magang && magang.periode_berakhir ? new Date(magang.periode_berakhir).toISOString().slice(0,10) : ''
+%>
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Edit Program Magang</h4>
+                        <form action="/manajer/magang/update/<%= magang.id %>" method="POST" enctype="multipart/form-data" data-loading>
+                            <div class="form-group">
+                                <label for="judul">Judul Program</label>
+                                <input type="text" class="form-control" id="judul" name="judul" placeholder="Masukkan judul program" value="<%= magang.judul %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="deskripsi_tugas">Deskripsi Tugas</label>
+                                <textarea class="form-control" id="deskripsi_tugas" name="deskripsi_tugas" rows="6" placeholder="Jelaskan tugas peserta magang" required><%= magang.deskripsi_tugas || '' %></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="periode_mulai">Periode Mulai</label>
+                                <input type="date" class="form-control" id="periode_mulai" name="periode_mulai" value="<%= periodeMulaiValue %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="periode_berakhir">Periode Berakhir</label>
+                                <input type="date" class="form-control" id="periode_berakhir" name="periode_berakhir" value="<%= periodeBerakhirValue %>" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Foto Kegiatan Saat Ini</label>
+                                <div id="existingFotoContainer" class="image-preview-container">
+                                    <% if (Array.isArray(foto) && foto.length) { %>
+                                        <% foto.forEach(function(item){ %>
+                                            <div class="image-preview-item" data-foto-id="<%= item.id %>">
+                                                <img src="/images/magang/<%= item.foto %>" data-src="/images/magang/<%= item.foto %>" alt="foto magang" class="img-click-preview">
+                                                <button type="button" class="image-preview-remove existing-foto-remove" data-foto-id="<%= item.id %>" aria-label="Hapus gambar">
+                                                    <i class="mdi mdi-close"></i>
+                                                </button>
+                                                <input type="hidden" name="hapus_foto[]" value="" class="hapus-foto-input" data-foto-id="<%= item.id %>">
+                                            </div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <p class="text-muted mb-0">Belum ada foto kegiatan.</p>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foto_baru">Tambah Foto Kegiatan</label>
+                                <input type="file" class="form-control" id="foto_baru" name="foto" accept="image/*" multiple data-preview-container="previewFotoBaruContainer">
+                                <small class="form-text text-muted">Foto baru akan ditambahkan ke daftar existing.</small>
+                                <div id="previewFotoBaruContainer" class="image-preview-container"></div>
+                            </div>
+
+                            <div class="d-flex">
+                                <button type="submit" class="btn btn-primary mr-2">Simpan</button>
+                                <a href="/manajer/magang/detail/<%= magang.id %>" class="btn btn-light" data-loading>Kembali</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-below-navbar modal-top" id="globalImagePreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pratinjau Gambar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="globalImagePreviewEl" src="" alt="preview" style="width:100%;height:auto;display:block;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/scripts/__script-dashboard.ejs') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle existing foto remove button
+    const existingContainer = document.getElementById('existingFotoContainer');
+    if (existingContainer) {
+        existingContainer.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.existing-foto-remove');
+            if (removeBtn) {
+                e.stopPropagation();
+                const fotoId = removeBtn.getAttribute('data-foto-id');
+                const item = removeBtn.closest('.image-preview-item');
+                const hiddenInput = item.querySelector('.hapus-foto-input');
+                
+                if (hiddenInput) {
+                    hiddenInput.value = fotoId;
+                    item.style.opacity = '0.5';
+                    item.style.pointerEvents = 'none';
+                }
+            }
+        });
+    }
+});
+</script>

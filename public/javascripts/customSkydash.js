@@ -219,3 +219,131 @@
         setupImagePreview();
     }
 })();
+
+(function() {
+    // Image preview manager with remove button
+    function ImagePreviewManager(inputElement, containerId) {
+        this.input = inputElement;
+        this.container = document.getElementById(containerId);
+        this.files = [];
+        this.init();
+    }
+
+    ImagePreviewManager.prototype.init = function() {
+        if (!this.container) return;
+        
+        const self = this;
+        
+        // Handle file input change
+        this.input.addEventListener('change', function(e) {
+            const newFiles = Array.from(e.target.files);
+            newFiles.forEach(function(file) {
+                if (file.type.startsWith('image/')) {
+                    self.addFile(file);
+                }
+            });
+            self.updateFileInput();
+        });
+
+        // Handle remove button clicks and image preview
+        this.container.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.image-preview-remove');
+            if (removeBtn) {
+                e.stopPropagation();
+                e.preventDefault();
+                const index = parseInt(removeBtn.getAttribute('data-index'));
+                if (!isNaN(index)) {
+                    self.removeFile(index);
+                }
+                return;
+            }
+            
+            // Handle image click for preview
+            const item = e.target.closest('.image-preview-item');
+            if (item) {
+                const img = item.querySelector('img');
+                if (img && img.src) {
+                    const event = new CustomEvent('preview-image', { 
+                        detail: { src: img.src } 
+                    });
+                    window.dispatchEvent(event);
+                }
+            }
+        });
+    };
+
+    ImagePreviewManager.prototype.addFile = function(file) {
+        const self = this;
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const index = self.files.length;
+            self.files.push({
+                file: file,
+                dataUrl: e.target.result
+            });
+            self.renderPreview(index, file.name, e.target.result);
+        };
+        
+        reader.readAsDataURL(file);
+    };
+
+    ImagePreviewManager.prototype.removeFile = function(index) {
+        if (index < 0 || index >= this.files.length) return;
+        this.files.splice(index, 1);
+        this.renderAll();
+        this.updateFileInput();
+    };
+
+    ImagePreviewManager.prototype.renderPreview = function(index, filename, dataUrl) {
+        const item = document.createElement('div');
+        item.className = 'image-preview-item';
+        item.setAttribute('data-index', index);
+        
+        item.innerHTML = `
+            <img src="${dataUrl}" alt="${filename}" class="img-click-preview">
+            <button type="button" class="image-preview-remove" data-index="${index}" aria-label="Hapus gambar">
+                <i class="mdi mdi-close"></i>
+            </button>
+            <div class="image-preview-filename">${filename}</div>
+        `;
+        
+        this.container.appendChild(item);
+    };
+
+    ImagePreviewManager.prototype.renderAll = function() {
+        if (!this.container) return;
+        this.container.innerHTML = '';
+        
+        const self = this;
+        this.files.forEach(function(item, index) {
+            self.renderPreview(index, item.file.name, item.dataUrl);
+        });
+    };
+
+    ImagePreviewManager.prototype.updateFileInput = function() {
+        // Create new FileList from remaining files
+        const dt = new DataTransfer();
+        this.files.forEach(function(item) {
+            dt.items.add(item.file);
+        });
+        this.input.files = dt.files;
+    };
+
+    // Initialize image preview managers
+    function initImagePreviewManagers() {
+        const inputs = document.querySelectorAll('input[type="file"][accept*="image"][data-preview-container]');
+        inputs.forEach(function(input) {
+            const containerId = input.getAttribute('data-preview-container');
+            if (containerId) {
+                new ImagePreviewManager(input, containerId);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initImagePreviewManagers);
+    } else {
+        initImagePreviewManagers();
+    }
+})();
