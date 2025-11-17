@@ -54,6 +54,35 @@ class Pengumuman {
             throw err
         }
     }
+
+    static async getForAPI() {
+        try {
+            const pengumuman = await this.getPengumuman()
+            return pengumuman.map(item => ({
+                id: item.id,
+                foto: item.foto,
+                judul: item.judul
+            }))
+        } catch (err) {
+            throw err
+        }
+    }
+
+    static async getDetailForAPI(id) {
+        try {
+            const pengumuman = await this.getById(id)
+            if (!pengumuman) return null
+            
+            return {
+                id: pengumuman.id,
+                foto: pengumuman.foto,
+                judul: pengumuman.judul,
+                isi: pengumuman.isi
+            }
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = Pengumuman

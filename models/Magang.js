@@ -95,6 +95,50 @@ class Magang {
             throw err
         }
     }
+
+    static async getFirstPhoto(idMagang) {
+        try {
+            const [rows] = await connection.query(
+                `SELECT foto FROM foto_kegiatan_magang WHERE id_magang = ? ORDER BY id ASC LIMIT 1`,
+                [idMagang]
+            )
+            return rows.length > 0 ? rows[0].foto : null
+        } catch (err) {
+            throw err
+        }
+    }
+
+    static async getAllWithFirstPhoto() {
+        try {
+            const magang = await this.getAll()
+            const result = await Promise.all(magang.map(async (item) => {
+                const foto = await this.getFirstPhoto(item.id)
+                return {
+                    id: item.id,
+                    judul: item.judul,
+                    foto: foto
+                }
+            }))
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
+
+    static async getDetailWithPhotos(id) {
+        try {
+            const magang = await this.getById(id)
+            if (!magang) return null
+            
+            const foto = await this.getPhotos(id)
+            return {
+                ...magang,
+                foto: foto.map(item => item.foto)
+            }
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = Magang

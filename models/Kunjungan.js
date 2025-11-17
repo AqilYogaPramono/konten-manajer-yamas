@@ -95,6 +95,51 @@ class Kunjungan {
             throw err
         }
     }
+
+    static async getFirstPhoto(idKunjungan) {
+        try {
+            const [rows] = await connection.query(
+                `SELECT foto FROM foto_kunjungan WHERE id_kunjungan = ? ORDER BY id ASC LIMIT 1`,
+                [idKunjungan]
+            )
+            return rows.length > 0 ? rows[0].foto : null
+        } catch (err) {
+            throw err
+        }
+    }
+
+    static async getAllWithFirstPhoto() {
+        try {
+            const kunjungan = await this.getAll()
+            const result = await Promise.all(kunjungan.map(async (item) => {
+                const foto = await this.getFirstPhoto(item.id)
+                return {
+                    id: item.id,
+                    judul: item.judul,
+                    foto: foto,
+                    waktu_kunjungan: item.waktu_kunjungan
+                }
+            }))
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
+
+    static async getDetailWithPhotos(id) {
+        try {
+            const kunjungan = await this.getById(id)
+            if (!kunjungan) return null
+            
+            const foto = await this.getPhotos(id)
+            return {
+                ...kunjungan,
+                foto: foto.map(item => item.foto)
+            }
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = Kunjungan

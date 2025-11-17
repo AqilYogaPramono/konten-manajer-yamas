@@ -57,6 +57,21 @@ class Anggota {
             throw err
         }
     }
+
+    static async getByNamaJabatan(namaJabatan) {
+        try {
+            const [rows] = await connection.query(
+                `SELECT a.*, j.nama_jabatan FROM anggota a 
+                 LEFT JOIN jabatan j ON a.id_jabatan = j.id 
+                 WHERE j.nama_jabatan LIKE ? 
+                 ORDER BY a.id DESC`,
+                [`%${namaJabatan}%`]
+            )
+            return rows
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = Anggota
