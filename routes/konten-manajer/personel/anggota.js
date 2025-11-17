@@ -40,13 +40,28 @@ const deleteOldPhoto = (oldPhoto) => {
 router.get('/', authManajer, async (req, res) => {
     try {
         const manajer = await Pegawai.getNama(req.session.pegawaiId)
-        const anggota = await Anggota.getAll()
+        const jabatan = await Jabatan.getAll()
+        const selectedJabatan = req.flash('selectedJabatan')[0]
+        let anggota = await Anggota.getAll()
+        if (selectedJabatan) anggota = await Anggota.getByJabatan(selectedJabatan)
 
-        res.render('konten-manajer/personel/anggota/index', {manajer, anggota})
+        res.render('konten-manajer/personel/anggota/index', {manajer, anggota, jabatan, selectedJabatan})
     } catch (err) {
         console.error(err)
         req.flash('error', 'Internal Server Error')
         res.redirect('/manajer/dashboard')
+    }
+})
+
+router.post('/filter', authManajer, async (req, res) => {
+    try {
+        const { jabatan_id } = req.body
+        req.flash('selectedJabatan', jabatan_id)
+        res.redirect('/manajer/anggota')
+    } catch (err) {
+        console.error(err)
+        req.flash('error', 'Internal Server Error')
+        res.redirect('/manajer/anggota')
     }
 })
 
@@ -142,6 +157,7 @@ router.post('/update/:id', authManajer, upload.single('foto'), async (req, res) 
     try {
         const {id} = req.params
         const anggota = await Anggota.getById(id)
+        console.log(anggota)
 
         const { nama, id_jabatan } = req.body
         const foto = req.file ? req.file.filename : anggota.foto
@@ -150,12 +166,6 @@ router.post('/update/:id', authManajer, upload.single('foto'), async (req, res) 
         if (!nama) {
             deleteUploadedFile(req.file)
             req.flash('error', 'Nama wajib diisi')
-            return res.redirect(`/manajer/anggota/edit/${id}`)
-        }
-
-        if (!foto) {
-            deleteUploadedFile(req.file)
-            req.flash('error', 'Foto wajib diisi')
             return res.redirect(`/manajer/anggota/edit/${id}`)
         }
 

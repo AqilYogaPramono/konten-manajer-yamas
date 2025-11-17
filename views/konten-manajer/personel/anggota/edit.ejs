@@ -27,10 +27,12 @@
                     </div>
                     <div class="form-group">
                       <label for="foto">Ganti Foto</label>
-                      <input type="file" class="form-control" id="foto" name="foto" accept="image/*" data-preview="previewEdit" required>
+                      <input type="file" class="form-control" id="foto" name="foto" accept="image/*" data-preview="previewEdit">
+                      <% if (anggota.foto) { %>
                       <div class="mt-2">
                         <img id="previewEdit" src="/images/anggota/<%= anggota.foto %>" data-src="/images/anggota/<%= anggota.foto %>" alt="foto anggota" style="height:300px;border-radius:8px;object-fit:cover;cursor:zoom-in;display:block;" class="img-click-preview">
                       </div>
+                      <% } %>
                     </div>
                     <div class="d-flex">
                       <button type="submit" class="btn btn-primary mr-2">Simpan</button>
